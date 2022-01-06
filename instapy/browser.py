@@ -4,7 +4,7 @@ import zipfile
 import shutil
 
 from os.path import sep
-from selenium import webdriver
+from seleniumwire import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.options import Options as Firefox_Options
 from selenium.webdriver import Remote
@@ -99,12 +99,12 @@ def set_selenium_local_session(
         # this setting can improve pageload & save bandwidth
         firefox_profile.set_preference("permissions.default.image", 2)
 
-    if proxy_address and proxy_port:
-        firefox_profile.set_preference("network.proxy.type", 1)
-        firefox_profile.set_preference("network.proxy.http", proxy_address)
-        firefox_profile.set_preference("network.proxy.http_port", int(proxy_port))
-        firefox_profile.set_preference("network.proxy.ssl", proxy_address)
-        firefox_profile.set_preference("network.proxy.ssl_port", int(proxy_port))
+    # if proxy_address and proxy_port:
+    #     firefox_profile.set_preference("network.proxy.type", 1)
+    #     firefox_profile.set_preference("network.proxy.http", proxy_address)
+    #     firefox_profile.set_preference("network.proxy.http_port", int(proxy_port))
+    #     firefox_profile.set_preference("network.proxy.ssl", proxy_address)
+    #     firefox_profile.set_preference("network.proxy.ssl_port", int(proxy_port))
 
     # mute audio while watching stories
     firefox_profile.set_preference("media.volume_scale", "0.0")
@@ -120,11 +120,18 @@ def set_selenium_local_session(
 
     # prefer user path before downloaded one
     driver_path = geckodriver_path or get_geckodriver()
+    seleniumwire_options = {}
+    if proxy_address:
+        seleniumwire_options["proxy"] =  {
+                "http": f"http://{proxy_username}:{proxy_password}@{proxy_address}:{proxy_port}",
+                "https": f"https://{proxy_username}:{proxy_password}@{proxy_address}:{proxy_port}",
+        }
     browser = webdriver.Firefox(
         firefox_profile=firefox_profile,
         executable_path=driver_path,
         log_path=geckodriver_log,
         options=firefox_options,
+        seleniumwire_options=seleniumwire_options,
     )
 
     # add extension to hide selenium
@@ -134,8 +141,8 @@ def set_selenium_local_session(
     # browser = convert_selenium_browser(browser)
 
     # authenticate with popup alert window
-    if proxy_username and proxy_password:
-        proxy_authentication(browser, logger, proxy_username, proxy_password)
+    # if proxy_username and proxy_password:
+    #     proxy_authentication(browser, logger, proxy_username, proxy_password)
 
     browser.implicitly_wait(page_delay)
 
